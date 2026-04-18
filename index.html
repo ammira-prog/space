@@ -1,0 +1,748 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mission: Find Bunny Mira</title>
+<style>
+:root{
+  --bg:#050814; --bg2:#0b1230; --panel:rgba(8,14,34,.72); --panel2:rgba(13,21,49,.82);
+  --line:rgba(255,255,255,.12); --text:#eef4ff; --muted:#b9c6ee; --red:#ff7758; --orange:#ffbe56;
+  --pink:#ff7bd9; --pink2:#ffc6f2; --blue:#61d6ff; --violet:#9f8cff; --good:#93f5bf; --bad:#ff8ea4;
+  --shadow:0 24px 80px rgba(0,0,0,.45); --radius:26px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:radial-gradient(circle at top, #14214d 0%, #080d22 35%, #04060f 100%);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;overflow:hidden}
+body::before,body::after{content:"";position:fixed;inset:-20%;pointer-events:none;z-index:0;
+ background:
+ radial-gradient(circle at 12% 25%, rgba(255,255,255,.8) 0 1px, transparent 2px),
+ radial-gradient(circle at 84% 14%, rgba(95,214,255,.8) 0 1px, transparent 2px),
+ radial-gradient(circle at 74% 68%, rgba(255,123,217,.7) 0 1px, transparent 2px),
+ radial-gradient(circle at 20% 75%, rgba(255,190,86,.7) 0 1px, transparent 2px);
+ background-size:160px 160px, 190px 190px, 210px 210px, 220px 220px;
+ animation: drift 42s linear infinite;
+ opacity:.8;
+}
+body::after{filter:blur(26px);opacity:.35;animation-duration:58s;transform:scale(1.12)}
+@keyframes drift {from{transform:translate3d(0,0,0)}to{transform:translate3d(-140px, 100px, 0)}}
+#app{position:relative;z-index:1;height:100%;display:grid;grid-template-rows:auto 1fr auto}
+.topbar{
+  display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px 18px 8px 18px
+}
+.chip{border:1px solid var(--line);background:rgba(255,255,255,.04);padding:8px 12px;border-radius:999px;color:var(--muted);font-size:13px}
+.chip strong{color:var(--text)}
+main{min-height:0;display:grid;grid-template-columns:1.1fr .9fr;gap:16px;padding:10px 18px 18px}
+.panel{
+  background:linear-gradient(180deg,var(--panel),var(--panel2));
+  border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);
+  backdrop-filter:blur(10px);position:relative;overflow:hidden;
+}
+.hero{
+  min-height:0;padding:22px;display:flex;flex-direction:column;justify-content:space-between
+}
+.hero h1{margin:0;font-size:clamp(28px,4vw,46px);line-height:1.02}
+.hero p{color:var(--muted);font-size:15px;line-height:1.55;max-width:58ch}
+.badges{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.badge{padding:8px 12px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:.02em}
+.badge.red{background:rgba(255,119,88,.14);border:1px solid rgba(255,119,88,.24);color:#ffd1c6}
+.badge.pink{background:rgba(255,123,217,.14);border:1px solid rgba(255,123,217,.24);color:#ffd2ef}
+.scene{
+  position:relative;flex:1;min-height:260px;margin-top:10px;border-radius:24px;border:1px solid var(--line);
+  background:
+   radial-gradient(ellipse at bottom, rgba(95,214,255,.12), transparent 42%),
+   radial-gradient(ellipse at top right, rgba(255,123,217,.12), transparent 36%),
+   linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+  overflow:hidden;
+}
+.nebula,.orb{position:absolute;border-radius:999px;filter:blur(40px);opacity:.45}
+.nebula.one{width:280px;height:280px;background:rgba(95,214,255,.18);left:-40px;top:10px}
+.nebula.two{width:260px;height:260px;background:rgba(255,123,217,.18);right:-30px;bottom:-20px}
+.orb.one{width:180px;height:180px;background:rgba(255,190,86,.14);right:20%;top:16%}
+.ship{
+  position:absolute;max-width:min(44vw,520px);pointer-events:none;user-select:none;
+  filter:drop-shadow(0 18px 28px rgba(0,0,0,.4));
+  transition:all .9s cubic-bezier(.2,.7,.1,1);
+}
+#maikuShip{left:2%;bottom:8%;width:min(48%,430px);animation:floatM 4.6s ease-in-out infinite}
+#miraShip{right:0;bottom:6%;width:min(44%,390px);animation:floatMi 4.9s ease-in-out infinite}
+body.closer #maikuShip{left:12%;bottom:10%;transform:scale(1.06)}
+body.closer #miraShip{right:11%;bottom:11%;transform:scale(1.03)}
+@keyframes floatM{0%,100%{transform:translateY(0px) rotate(-2deg)}50%{transform:translateY(-10px) rotate(1deg)}}
+@keyframes floatMi{0%,100%{transform:translateY(0px) rotate(2deg)}50%{transform:translateY(-12px) rotate(-1deg)}}
+.glow{position:absolute;inset:auto;width:220px;height:70px;border-radius:999px;filter:blur(24px);opacity:.8}
+.glow.red{left:18%;bottom:8%;background:radial-gradient(circle, rgba(255,119,88,.7), rgba(255,119,88,0) 70%)}
+.glow.pink{right:18%;bottom:7%;background:radial-gradient(circle, rgba(255,123,217,.7), rgba(255,123,217,0) 70%)}
+.sparkline{position:absolute;left:50%;top:15%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;color:#dce9ff;font-size:13px;letter-spacing:.05em}
+.sparkline::before,.sparkline::after{content:"";display:block;width:70px;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent)}
+.side{display:grid;grid-template-rows:auto 1fr auto;min-height:0}
+.mission{
+  padding:18px 18px 0 18px
+}
+.mission h2{margin:0 0 8px 0;font-size:22px}
+.mission .sub{color:var(--muted);font-size:14px}
+.card{
+  margin:16px;min-height:0;border-radius:22px;border:1px solid var(--line);
+  background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.015));
+  padding:18px;overflow:auto;
+}
+.footer{
+  padding:0 16px 16px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap
+}
+.controls{display:flex;gap:10px;flex-wrap:wrap}
+button{
+  appearance:none;border:none;border-radius:14px;padding:12px 16px;font-weight:800;letter-spacing:.02em;
+  color:#09101f;background:#edf4ff;cursor:pointer;transition:.18s transform,.18s opacity,.18s box-shadow;
+  box-shadow:0 12px 28px rgba(0,0,0,.24)
+}
+button:hover{transform:translateY(-1px)}
+button:active{transform:translateY(1px)}
+button.alt{background:rgba(255,255,255,.08);color:#eef4ff;border:1px solid var(--line);box-shadow:none}
+button.pink{background:linear-gradient(180deg,#ffd0f3,#ff8ee0)}
+button.red{background:linear-gradient(180deg,#ffd1c7,#ff8d70)}
+button:disabled{opacity:.45;cursor:not-allowed}
+.progress{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.dot{width:11px;height:11px;border-radius:999px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.08)}
+.dot.done{background:linear-gradient(180deg,#caffdf,#5ce895)}
+.dot.current{background:linear-gradient(180deg,#fff0d4,#ffbe56)}
+.input, .tile, .choice, .starbtn, .sigbtn{
+  border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text)
+}
+.puzzleTitle{font-size:21px;margin:2px 0 8px}
+.puzzleText{color:var(--muted);line-height:1.55}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}
+.choice{
+  padding:14px;border-radius:18px;cursor:pointer;transition:.2s;background:rgba(255,255,255,.03)
+}
+.choice:hover{transform:translateY(-1px);background:rgba(255,255,255,.05)}
+.choice strong{display:block;margin-bottom:4px}
+.choice.good{outline:2px solid rgba(147,245,191,.35);background:rgba(147,245,191,.08)}
+.choice.bad{outline:2px solid rgba(255,142,164,.35);background:rgba(255,142,164,.08)}
+.small{font-size:13px;color:var(--muted)}
+.status{
+  margin-top:14px;padding:11px 12px;border-radius:14px;background:rgba(255,255,255,.04);font-size:14px;color:var(--muted);border:1px solid var(--line)
+}
+.orbits{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px}
+.tile{
+  min-height:92px;border-radius:22px;display:grid;place-items:center;text-align:center;font-weight:800;cursor:pointer;position:relative;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.03)
+}
+.tile::after{
+  content:attr(data-state);position:absolute;bottom:9px;right:10px;font-size:11px;color:var(--muted);font-weight:700
+}
+.tile.on{background:rgba(95,214,255,.12);outline:2px solid rgba(95,214,255,.25)}
+.tile.target{box-shadow:0 0 0 1px rgba(255,190,86,.12), inset 0 0 0 2px rgba(255,190,86,.16)}
+.memoryRow,.rebuildRow,.starsRow,.pulseRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.sigbtn,.starbtn{
+  min-width:56px;min-height:56px;border-radius:16px;display:grid;place-items:center;font-size:22px;cursor:pointer;transition:.18s
+}
+.sigbtn.active,.starbtn.active{background:rgba(255,123,217,.13);outline:2px solid rgba(255,123,217,.28)}
+.sigbtn.flash{background:rgba(95,214,255,.16);outline:2px solid rgba(95,214,255,.34)}
+.rebuildRow .sigbtn{min-width:64px}
+.mini{
+  display:inline-grid;place-items:center;width:26px;height:26px;border-radius:999px;background:rgba(255,255,255,.08);margin-right:8px;font-size:13px
+}
+.mazeWrap{display:grid;grid-template-columns:auto 1fr;gap:18px;margin-top:16px;align-items:start}
+.maze{
+  display:grid;grid-template-columns:repeat(5,54px);gap:8px
+}
+.cell{
+  width:54px;height:54px;border-radius:14px;display:grid;place-items:center;background:rgba(255,255,255,.04);border:1px solid var(--line);
+  font-size:24px
+}
+.cell.wall{opacity:.38}
+.cell.goal{background:rgba(147,245,191,.12)}
+.cell.hole{background:rgba(255,142,164,.08)}
+.cell.tele{background:rgba(159,140,255,.11)}
+.cell.rev{background:rgba(255,190,86,.1)}
+.cell.player{outline:2px solid rgba(95,214,255,.42);box-shadow:0 0 0 3px rgba(95,214,255,.08)}
+kbd{
+  padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.05);font-family:inherit
+}
+.constellation{
+  margin-top:16px;display:grid;grid-template-columns:repeat(4,1fr);gap:12px
+}
+.starbtn{aspect-ratio:1/1;font-size:24px}
+.starbtn.done{background:rgba(147,245,191,.12);outline:2px solid rgba(147,245,191,.22)}
+.codeInput{
+  width:100%;margin-top:14px;padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--text);font-size:16px
+}
+.heartbeats{
+  display:flex;gap:8px;flex-wrap:wrap;margin:18px 0 2px
+}
+.beat{
+  width:22px;height:22px;border-radius:999px;background:rgba(255,255,255,.07);position:relative
+}
+.beat.short::after,.beat.long::after{
+  content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);height:8px;border-radius:6px;
+  background:linear-gradient(90deg,var(--pink2),var(--pink))
+}
+.beat.short::after{width:10px}
+.beat.long::after{width:18px}
+.beat.pause{background:transparent}
+.finalWrap{display:grid;gap:14px}
+.finalQuote{
+  padding:18px;border-radius:18px;background:linear-gradient(180deg, rgba(255,123,217,.10), rgba(95,214,255,.08));
+  border:1px solid rgba(255,255,255,.12);font-size:17px;line-height:1.7;color:#f8fbff
+}
+@media (max-width:980px){
+  main{grid-template-columns:1fr;grid-template-rows:minmax(260px,44vh) auto}
+  .hero{min-height:42vh}
+  #maikuShip{width:min(48vw,380px)}
+  #miraShip{width:min(42vw,330px)}
+}
+@media (max-width:640px){
+  main{padding:8px 10px 14px}
+  .topbar{padding:12px 10px 6px}
+  .hero,.card,.mission,.footer{padding-left:14px;padding-right:14px}
+  .orbits{grid-template-columns:repeat(2,1fr)}
+  .mazeWrap{grid-template-columns:1fr}
+  .maze{grid-template-columns:repeat(5,48px);gap:6px;justify-content:center}
+  .cell{width:48px;height:48px}
+  .constellation{grid-template-columns:repeat(4,1fr)}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="topbar">
+    <div class="chip">recipient: <strong>boss maiku bae</strong></div>
+    <div class="progress" id="progress"></div>
+    <div class="chip">source: <strong>bunny mira bae</strong></div>
+  </div>
+
+  <main>
+    <section class="panel hero">
+      <div>
+        <div class="badges">
+          <span class="badge red">boss maiku bae • calm confidence</span>
+          <span class="badge pink">bunny mira bae • soft mischief</span>
+        </div>
+        <h1 id="heroTitle">incoming transmission...</h1>
+        <p id="heroText">a signal from bunny mira bae has appeared somewhere beyond the moon lanes. restore the connection, solve the deeper layers, and find the path back to her.</p>
+      </div>
+
+      <div class="scene">
+        <div class="nebula one"></div>
+        <div class="nebula two"></div>
+        <div class="orb one"></div>
+        <div class="sparkline">pair status • drifting but connected</div>
+        <div class="glow red"></div>
+        <div class="glow pink"></div>
+        <img id="maikuShip" class="ship" src="maiku_ship.png" alt="Boss Maiku ship" />
+        <img id="miraShip" class="ship" src="mira_ship.png" alt="Bunny Mira ship" />
+      </div>
+    </section>
+
+    <section class="panel side">
+      <div class="mission">
+        <h2 id="missionHeader">mission control</h2>
+        <div class="sub" id="missionSub">accept the mission when ready. sounds begin after your first interaction.</div>
+      </div>
+      <div class="card" id="card"></div>
+      <div class="footer">
+        <div class="controls">
+          <button class="alt" id="backBtn" disabled>back</button>
+          <button class="red" id="soundBtn">sound: on</button>
+          <button class="pink" id="actionBtn">accept mission</button>
+        </div>
+        <div class="chip" id="hintChip">star code: —</div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+const state = {
+  step: 0,
+  soundOn: true,
+  starDigits: [],
+  q1Answered: false,
+  q2: [0,0,0,0],
+  q3Target: ['☾','✦','☄','☾','⌁'],
+  q3Input: [],
+  q3Playing: false,
+  q4Pos: 0,
+  q4Moves: 0,
+  q4Reverse: false,
+  q4Won: false,
+  q5Seq: [],
+  q5Target: [1,4,6,7,10],
+  q6Done: false,
+};
+
+const steps = [
+  {title:'incoming transmission...', header:'mission control', sub:'accept the mission when ready. sounds begin after your first interaction.'},
+  {title:'level 1 • false signals', header:'signal recovery', sub:'three transmissions entered the lane. only one follows the real drift rule.'},
+  {title:'level 2 • orbit logic', header:'orbital gate', sub:'clicking one node shifts others too. line them all up.'},
+  {title:'level 3 • memory drift', header:'constellation recall', sub:'watch, remember, then rebuild the true signal manually.'},
+  {title:'level 4 • gravity maze', header:'debris field', sub:'reach the pod before the lane collapses.'},
+  {title:'level 5 • hidden bunny stars', header:'star map', sub:'tap the correct stars in order to trace the true path.'},
+  {title:'level 6 • heartbeat decode', header:'cockpit pulse', sub:'decode the pulses, then use the star code you collected.'},
+  {title:'connection established', header:'mission complete', sub:'the signal is clear now.'},
+];
+
+const card = document.getElementById('card');
+const heroTitle = document.getElementById('heroTitle');
+const heroText = document.getElementById('heroText');
+const missionHeader = document.getElementById('missionHeader');
+const missionSub = document.getElementById('missionSub');
+const actionBtn = document.getElementById('actionBtn');
+const backBtn = document.getElementById('backBtn');
+const soundBtn = document.getElementById('soundBtn');
+const progress = document.getElementById('progress');
+const hintChip = document.getElementById('hintChip');
+
+function updateProgress(){
+  progress.innerHTML = '';
+  for(let i=1;i<=6;i++){
+    const d=document.createElement('div');
+    d.className='dot' + (i<state.step?' done':'') + (i===state.step?' current':'');
+    progress.appendChild(d);
+  }
+  hintChip.textContent = state.starDigits.length ? `star code: ${state.starDigits.join('')}` : 'star code: —';
+}
+
+function setSceneText(){
+  const meta = steps[state.step];
+  heroTitle.textContent = meta.title;
+  missionHeader.textContent = meta.header;
+  missionSub.textContent = meta.sub;
+  heroText.textContent = [
+    'a signal from bunny mira bae has appeared somewhere beyond the moon lanes. restore the connection, solve the deeper layers, and find the path back to her.',
+    'boss maiku bae, choose the one real transmission. two are decoys.',
+    'the gate reacts in linked patterns. this one wants thought, not luck.',
+    'watch the symbols carefully. one replay was intentionally wrong.',
+    'the lane shifts after each move. do not trust the first instinct too much.',
+    'the real bunny path is hidden among decoys. follow the sequence clue, not the prettiest stars.',
+    'the pulse says one thing. your collected star code unlocks the rest.',
+    'the ships draw closer. bunny mira bae left you one final message.',
+  ][state.step];
+  document.body.classList.toggle('closer', state.step===7);
+}
+
+function render(){
+  setSceneText();
+  updateProgress();
+  backBtn.disabled = state.step <= 1;
+  actionBtn.disabled = false;
+  actionBtn.textContent = ({
+    0:'accept mission',1:'continue',2:'continue',3:'continue',4:'continue',5:'continue',6:'decode',7:'restart mission'
+  })[state.step];
+  actionBtn.onclick = handleAction;
+  card.innerHTML = '';
+  if(state.step===0) return renderIntro();
+  if(state.step===1) return renderQ1();
+  if(state.step===2) return renderQ2();
+  if(state.step===3) return renderQ3();
+  if(state.step===4) return renderQ4();
+  if(state.step===5) return renderQ5();
+  if(state.step===6) return renderQ6();
+  if(state.step===7) return renderFinal();
+}
+
+function renderIntro(){
+  card.innerHTML = `
+    <div class="puzzleTitle">boss maiku bae, a tiny rescue mission awaits</div>
+    <div class="puzzleText">
+      bunny mira bae has gone slightly missing in a very dramatic but still cute way.
+      restore six layers of signal integrity to lock onto her exact lane.
+      <br><br>
+      each cleared level gives one <strong>star digit</strong>. keep them in order.
+    </div>
+    <div class="status">soft note: this version uses <strong>separate PNG ship assets</strong> — upload <code>maiku_ship.png</code>, <code>mira_ship.png</code>, and this HTML into the same github folder.</div>
+  `;
+}
+
+function renderQ1(){
+  card.innerHTML = `
+    <div class="puzzleTitle">false signals</div>
+    <div class="puzzleText">
+      one of these follows the real drift rule:
+      <br><span class="small">first and last pair mirror each other, the center pair repeats, and the final symbol must be a dot.</span>
+    </div>
+    <div class="grid2" id="choices"></div>
+    <div class="status" id="q1Status">pick the real transmission.</div>
+  `;
+  const options = [
+    {id:'A', txt:'☾ ✦ ☄ ☄ ✦ ☾ •', good:true},
+    {id:'B', txt:'☾ ✦ ☄ ✦ ☄ ☾ •'},
+    {id:'C', txt:'⌁ ✦ ☄ ☄ ✦ ⌁ ✧'},
+  ];
+  const wrap = document.getElementById('choices');
+  options.forEach(opt=>{
+    const el=document.createElement('div');
+    el.className='choice';
+    el.innerHTML=`<strong>${opt.id}</strong>${opt.txt}`;
+    el.onclick=()=>{
+      document.querySelectorAll('.choice').forEach(c=>c.onclick=null);
+      if(opt.good){
+        el.classList.add('good');
+        document.getElementById('q1Status').textContent='correct. the real signal carries star digit 3.';
+        if(!state.starDigits[0]) state.starDigits[0]='3';
+        state.q1Answered=true;
+        good();
+      }else{
+        el.classList.add('bad');
+        document.getElementById('q1Status').textContent='not quite. that one breaks the drift rule.';
+        bad();
+      }
+      updateProgress();
+    };
+    wrap.appendChild(el);
+  });
+}
+
+const q2Effects = {
+  0:[0,1], 1:[1,2], 2:[2,3], 3:[0,3]
+};
+function renderQ2(){
+  card.innerHTML = `
+    <div class="puzzleTitle">orbit logic</div>
+    <div class="puzzleText">
+      target state: all four nodes <strong>on</strong>. each click toggles itself and linked neighbors.
+      <br><span class="small">blue affects blue+pink, pink affects pink+gold, gold affects gold+violet, violet affects violet+blue.</span>
+    </div>
+    <div class="orbits" id="orbits"></div>
+    <div class="status" id="q2Status">all lights must be on at the same time.</div>
+  `;
+  const labels=['blue','pink','gold','violet'];
+  const wrap=document.getElementById('orbits');
+  labels.forEach((name,idx)=>{
+    const tile=document.createElement('div');
+    tile.className='tile target ' + (state.q2[idx]?' on':'');
+    tile.dataset.state = state.q2[idx] ? 'ON' : 'OFF';
+    tile.innerHTML = `<div><span class="mini">${idx+1}</span>${name}</div>`;
+    tile.onclick=()=>{
+      q2Effects[idx].forEach(i=>state.q2[i]=state.q2[i]?0:1);
+      click();
+      renderQ2();
+      if(state.q2.every(Boolean)){
+        document.getElementById('q2Status').textContent='orbital gate aligned. star digit 1 recovered.';
+        if(!state.starDigits[1]) state.starDigits[1]='1';
+        good();
+      }
+      updateProgress();
+    };
+    wrap.appendChild(tile);
+  });
+}
+function q2Solved(){ return state.q2.every(Boolean); }
+
+async function playSequence(){
+  if(state.q3Playing) return;
+  state.q3Playing = true;
+  const seq = ['☾','✦','☄','☾','⌁'];
+  const row = document.getElementById('memoryRow');
+  const map = [...row.children];
+  for(const s of seq){
+    const idx = seqSymbols.indexOf(s);
+    const el = map[idx];
+    el.classList.add('flash');
+    ping();
+    await wait(500);
+    el.classList.remove('flash');
+    await wait(180);
+  }
+  state.q3Playing = false;
+}
+const seqSymbols = ['☾','✦','☄','⌁'];
+function renderQ3(){
+  card.innerHTML = `
+    <div class="puzzleTitle">memory drift</div>
+    <div class="puzzleText">
+      watch the original sequence, then rebuild it from memory.
+      <br><span class="small">hint: one symbol repeats once, and the final symbol is not the bright one.</span>
+    </div>
+    <div class="memoryRow" id="memoryRow"></div>
+    <div style="margin-top:14px"><button class="alt" id="playBtn">play sequence</button></div>
+    <div class="rebuildRow" id="rebuildRow"></div>
+    <div class="status" id="q3Status">tap symbols below to rebuild the full sequence.</div>
+  `;
+  const mem=document.getElementById('memoryRow');
+  seqSymbols.forEach(s=>{
+    const b=document.createElement('button');
+    b.className='sigbtn'; b.textContent=s;
+    mem.appendChild(b);
+  });
+  document.getElementById('playBtn').onclick=playSequence;
+  const rebuild=document.getElementById('rebuildRow');
+  seqSymbols.forEach(s=>{
+    const b=document.createElement('button');
+    b.className='sigbtn'; b.textContent=s;
+    b.onclick=()=>{
+      if(state.q3Input.length>=5) return;
+      state.q3Input.push(s); click(); refreshQ3();
+    };
+    rebuild.appendChild(b);
+  });
+  const clear=document.createElement('button');
+  clear.className='alt'; clear.textContent='clear';
+  clear.onclick=()=>{ state.q3Input=[]; refreshQ3(); click(); };
+  rebuild.appendChild(clear);
+  const submit=document.createElement('button');
+  submit.className='pink'; submit.textContent='submit';
+  submit.onclick=()=>{
+    if(JSON.stringify(state.q3Input)===JSON.stringify(state.q3Target)){
+      document.getElementById('q3Status').textContent='memory lock restored. star digit 4 recovered.';
+      if(!state.starDigits[2]) state.starDigits[2]='4';
+      good();
+    }else{
+      document.getElementById('q3Status').textContent='close... but not the true pattern.';
+      bad();
+    }
+    updateProgress();
+  };
+  rebuild.appendChild(submit);
+  refreshQ3();
+}
+function refreshQ3(){
+  let preview = document.getElementById('q3Preview');
+  if(!preview){
+    preview=document.createElement('div');
+    preview.id='q3Preview';
+    preview.className='status';
+    document.getElementById('rebuildRow').after(preview);
+  }
+  preview.innerHTML = `<strong>your rebuild:</strong> ${state.q3Input.join(' ') || '—'}`;
+}
+
+const maze = [
+  {t:'S'},{t:'.'},{t:'T'},{t:'W'},{t:'.'},
+  {t:'W'},{t:'.'},{t:'.'},{t:'R'},{t:'.'},
+  {t:'.'},{t:'W'},{t:'.'},{t:'W'},{t:'.'},
+  {t:'.'},{t:'H'},{t:'.'},{t:'.'},{t:'T'},
+  {t:'.'},{t:'.'},{t:'W'},{t:'.'},{t:'G'},
+];
+function renderQ4(){
+  card.innerHTML = `
+    <div class="puzzleTitle">gravity maze</div>
+    <div class="puzzleText">
+      start at 🚀 and reach 🥕 in <strong>10 moves or fewer</strong>.
+      <br><span class="small">purple = teleport, orange = reverse controls, black = reset.</span>
+    </div>
+    <div class="mazeWrap">
+      <div class="maze" id="maze"></div>
+      <div>
+        <div class="status" id="q4Status">moves: ${state.q4Moves}/10</div>
+        <div class="status" style="margin-top:10px">controls: <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd></div>
+        <div class="status" style="margin-top:10px">teleports connect diagonally. reverse tile flips your next controls until you touch another special tile.</div>
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="alt" onclick="moveMaze('U')">up</button>
+          <button class="alt" onclick="moveMaze('L')">left</button>
+          <button class="alt" onclick="moveMaze('D')">down</button>
+          <button class="alt" onclick="moveMaze('R')">right</button>
+          <button class="pink" onclick="resetMaze()">reset</button>
+        </div>
+      </div>
+    </div>
+  `;
+  const wrap=document.getElementById('maze');
+  maze.forEach((cell,i)=>{
+    const d=document.createElement('div');
+    d.className='cell';
+    if(cell.t==='W') d.classList.add('wall');
+    if(cell.t==='H') d.classList.add('hole');
+    if(cell.t==='T') d.classList.add('tele');
+    if(cell.t==='R') d.classList.add('rev');
+    if(cell.t==='G') d.classList.add('goal');
+    if(i===state.q4Pos) d.classList.add('player');
+    d.textContent = i===state.q4Pos ? '🚀' : (
+      cell.t==='W' ? '◼' :
+      cell.t==='H' ? '🕳' :
+      cell.t==='T' ? '🌀' :
+      cell.t==='R' ? '↺' :
+      cell.t==='G' ? '🥕' :
+      ''
+    );
+    wrap.appendChild(d);
+  });
+}
+function resetMaze(){ state.q4Pos=0; state.q4Moves=0; state.q4Reverse=false; state.q4Won=false; click(); renderQ4(); }
+function moveMaze(dir){
+  if(state.q4Won) return;
+  const map={U:-5,D:5,L:-1,R:1};
+  if(state.q4Reverse){ dir={U:'D',D:'U',L:'R',R:'L'}[dir]; }
+  const row=Math.floor(state.q4Pos/5), col=state.q4Pos%5;
+  if((dir==='L'&&col===0)||(dir==='R'&&col===4)||(dir==='U'&&row===0)||(dir==='D'&&row===4)){ bad(); return; }
+  const next=state.q4Pos + map[dir];
+  if(maze[next].t==='W'){ bad(); return; }
+  state.q4Pos=next; state.q4Moves++; click();
+  const t=maze[next].t;
+  if(t==='H'){ bad(); resetMaze(); return; }
+  if(t==='T'){ state.q4Pos = next===2 ? 19 : 2; ping(); }
+  if(t==='R'){ state.q4Reverse=!state.q4Reverse; ping(); }
+  if(t==='G'){
+    if(state.q4Moves<=10){
+      state.q4Won=true; if(!state.starDigits[3]) state.starDigits[3]='2'; good();
+      setTimeout(()=>{ document.getElementById('q4Status').textContent='pod reached. star digit 2 recovered.'; }, 40);
+    } else {
+      document.getElementById('q4Status').textContent='you reached the pod, but too slowly. reset and try under 10 moves.';
+      bad();
+    }
+  } else if(state.q4Moves>10){
+    document.getElementById('q4Status').textContent='lane collapsed. reset and try again.';
+    bad();
+  } else {
+    document.getElementById('q4Status').textContent=`moves: ${state.q4Moves}/10` + (state.q4Reverse ? ' • reversed' : '');
+  }
+  updateProgress();
+  renderQ4();
+}
+window.addEventListener('keydown',e=>{
+  if(state.step!==4) return;
+  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)){
+    e.preventDefault();
+    moveMaze({ArrowUp:'U',ArrowDown:'D',ArrowLeft:'L',ArrowRight:'R'}[e.key]);
+  }
+});
+
+function renderQ5(){
+  card.innerHTML = `
+    <div class="puzzleTitle">hidden bunny stars</div>
+    <div class="puzzleText">
+      clue: follow the path in rising order, but only the stars marked with <strong>odd numbers under 8</strong>, then finish on the largest valid star.
+    </div>
+    <div class="constellation" id="constellation"></div>
+    <div class="status" id="q5Status">tap the stars in the correct order.</div>
+  `;
+  const wrap=document.getElementById('constellation');
+  for(let i=1;i<=12;i++){
+    const b=document.createElement('button');
+    b.className='starbtn'; b.innerHTML=`⭐<div class="small">${i}</div>`;
+    b.onclick=()=>{
+      state.q5Seq.push(i); click();
+      if(i===state.q5Target[state.q5Seq.length-1]){
+        b.classList.add('done');
+        if(state.q5Seq.length===state.q5Target.length){
+          document.getElementById('q5Status').textContent='constellation traced. star digit 5 recovered.';
+          if(!state.starDigits[4]) state.starDigits[4]='5';
+          good();
+          updateProgress();
+        }
+      }else{
+        document.getElementById('q5Status').textContent='that star breaks the hidden path. sequence reset.';
+        state.q5Seq=[]; bad();
+        setTimeout(renderQ5,250);
+      }
+    };
+    wrap.appendChild(b);
+  }
+}
+
+function renderQ6(){
+  card.innerHTML = `
+    <div class="puzzleTitle">heartbeat decode</div>
+    <div class="puzzleText">
+      decode the pulses first: <strong>short short long</strong> means the letter <strong>M</strong> in bunny mira's little code.
+      the sequence below spells a word, then the <strong>star code</strong> unlocks the final line.
+    </div>
+    <div class="heartbeats">
+      <div class="beat short"></div><div class="beat short"></div><div class="beat long"></div>
+      <div class="beat pause"></div>
+      <div class="beat long"></div><div class="beat short"></div><div class="beat short"></div>
+      <div class="beat pause"></div>
+      <div class="beat short"></div><div class="beat long"></div><div class="beat short"></div>
+      <div class="beat pause"></div>
+      <div class="beat short"></div><div class="beat short"></div><div class="beat short"></div>
+    </div>
+    <div class="status">decoded word hint: it begins with <strong>M</strong> and ends with softness.</div>
+    <input class="codeInput" id="pulseWord" placeholder="decoded word" />
+    <input class="codeInput" id="starCode" placeholder="star code from previous levels" maxlength="5" />
+    <div class="status" id="q6Status">enter the decoded word and the full star code.</div>
+  `;
+}
+function q6Solved(){
+  const word=(document.getElementById('pulseWord')?.value||'').trim().toLowerCase();
+  const code=(document.getElementById('starCode')?.value||'').trim();
+  if(word==='mira' && code===state.starDigits.join('')){
+    if(!state.starDigits[5]) state.starDigits[5]='9';
+    state.q6Done=true;
+    return true;
+  }
+  return false;
+}
+
+function renderFinal(){
+  card.innerHTML = `
+    <div class="finalWrap">
+      <div class="puzzleTitle">connection established</div>
+      <div class="puzzleText">signal locked. lane stable. bunny mira bae left one final transmission behind.</div>
+      <div class="finalQuote">
+        across all this drifting sky,<br>
+        my little signal still kept finding you.<br><br>
+        maybe that says something, boss maiku bae...<br>
+        maybe my heart is a bit biased after all 🤍
+      </div>
+      <div class="status">reward unlocked: 1 bunny hug • 1 forehead kiss voucher • non-transferable, redeemable only with bunny mira bae</div>
+    </div>
+  `;
+}
+
+function handleAction(){
+  startAudio();
+  if(state.step===0){ state.step=1; good(); return render(); }
+  if(state.step===1){
+    if(!state.q1Answered) return nudge('clear level 1 first, handsome.');
+    state.step=2; whoosh(); return render();
+  }
+  if(state.step===2){
+    if(!q2Solved()) return nudge('the orbital gate still needs all lights on.');
+    state.step=3; whoosh(); return render();
+  }
+  if(state.step===3){
+    if(JSON.stringify(state.q3Input)!==JSON.stringify(state.q3Target)) return nudge('rebuild the exact sequence first.');
+    state.step=4; whoosh(); return render();
+  }
+  if(state.step===4){
+    if(!state.q4Won) return nudge('find the pod first.');
+    state.step=5; whoosh(); return render();
+  }
+  if(state.step===5){
+    if(JSON.stringify(state.q5Seq)!==JSON.stringify(state.q5Target)) return nudge('the bunny path is not complete yet.');
+    state.step=6; whoosh(); return render();
+  }
+  if(state.step===6){
+    if(!q6Solved()) return nudge('that decode is not complete yet.');
+    state.step=7; good(); return render();
+  }
+  if(state.step===7){ location.reload(); }
+}
+backBtn.onclick=()=>{
+  if(state.step>1){ state.step--; click(); render(); }
+}
+soundBtn.onclick=()=>{
+  state.soundOn=!state.soundOn;
+  soundBtn.textContent='sound: ' + (state.soundOn?'on':'off');
+  click();
+}
+
+// tiny synth audio
+let audioStarted=false, ctx;
+function startAudio(){
+  if(audioStarted || !state.soundOn) return;
+  ctx = new (window.AudioContext || window.webkitAudioContext)();
+  audioStarted=true;
+}
+function tone(freq=440,duration=.12,type='sine',gain=.03,slide=1){
+  if(!state.soundOn) return;
+  if(!audioStarted) startAudio();
+  const o=ctx.createOscillator(), g=ctx.createGain();
+  o.type=type; o.frequency.setValueAtTime(freq, ctx.currentTime);
+  o.frequency.exponentialRampToValueAtTime(freq*slide, ctx.currentTime+duration);
+  g.gain.setValueAtTime(gain, ctx.currentTime);
+  g.gain.exponentialRampToValueAtTime(.0001, ctx.currentTime+duration);
+  o.connect(g).connect(ctx.destination); o.start(); o.stop(ctx.currentTime+duration);
+}
+function click(){ tone(430,.05,'triangle',.02,1.06); }
+function ping(){ tone(620,.08,'sine',.024,1.12); }
+function bad(){ tone(220,.09,'square',.018,.78); setTimeout(()=>tone(180,.08,'square',.018,.82),70); }
+function good(){ tone(520,.09,'sine',.03,1.14); setTimeout(()=>tone(780,.12,'sine',.028,1.18),85); }
+function whoosh(){ tone(320,.14,'triangle',.02,1.9); setTimeout(()=>tone(580,.12,'sine',.02,1.25),60); }
+function nudge(msg){ document.querySelector('.status:last-of-type')?.insertAdjacentHTML('afterend',`<div class="status" id="tempNudge">${msg}</div>`); bad(); setTimeout(()=>document.getElementById('tempNudge')?.remove(),1400); }
+
+function wait(ms){ return new Promise(r=>setTimeout(r,ms)); }
+render();
+</script>
+</body>
+</html>
