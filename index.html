@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Space Bunny Mission</title>
+  <style>
+    :root{
+      --bg1:#040b24;
+      --bg2:#08163f;
+      --panel:rgba(10,18,54,0.78);
+      --panel2:rgba(255,255,255,0.04);
+      --line:rgba(255,255,255,0.10);
+      --text:#f5f7ff;
+      --muted:#bcc6e6;
+      --pink1:#ffd7ec;
+      --pink2:#f6a9da;
+      --pink3:#e889cf;
+      --buttonText:#1a1630;
+      --good:#9ff0c1;
+      --bad:#ffb1c8;
+      --glow:rgba(255,188,220,0.18);
+      --blueGlow:rgba(140,190,255,0.16);
+      --shadow:0 20px 50px rgba(0,0,0,0.28);
+    }
+
+    *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    html,body{ margin:0; min-height:100%; }
+    body{
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 20% 15%, rgba(112,87,255,0.18), transparent 18%),
+        radial-gradient(circle at 80% 18%, rgba(255,132,212,0.14), transparent 16%),
+        radial-gradient(circle at 50% 80%, rgba(66,167,255,0.12), transparent 22%),
+        linear-gradient(180deg, var(--bg2), var(--bg1));
+      overflow-x:hidden;
+    }
+
+    body::before,
+    body::after{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      z-index:0;
+    }
+
+    body::before{
+      background-image:
+        radial-gradient(circle, rgba(255,255,255,0.95) 0 1px, transparent 1.5px),
+        radial-gradient(circle, rgba(255,220,244,0.75) 0 1px, transparent 1.5px),
+        radial-gradient(circle, rgba(170,215,255,0.70) 0 1px, transparent 1.5px);
+      background-size:160px 160px,220px 220px,260px 260px;
+      background-position:18px 22px,90px 120px,160px 48px;
+      opacity:0.42;
+    }
+
+    body::after{
+      background:
+        radial-gradient(circle at 50% 100%, rgba(255,170,223,0.10), transparent 35%);
+      opacity:1;
+    }
+
+    .app{
+      position:relative;
+      z-index:1;
+      width:min(100%, 860px);
+      min-height:100vh;
+      margin:0 auto;
+      padding:16px 12px 24px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+    }
+
+    .topline{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:14px;
+      font-size:14px;
+      color:var(--muted);
+    }
+
+    .topchip{
+      flex:1;
+      min-height:54px;
+      border:1px solid var(--line);
+      border-radius:22px;
+      padding:10px 12px;
+      background:rgba(255,255,255,0.03);
+      backdrop-filter:blur(8px);
+      display:flex;
+      align-items:center;
+      line-height:1.2;
+    }
+
+    .topchip strong{ color:var(--text); font-weight:700; }
+
+    .screen{
+      display:none;
+      opacity:0;
+      transform:translateY(8px);
+      transition:opacity .35s ease, transform .35s ease;
+    }
+    .screen.active{
+      display:block;
+      opacity:1;
+      transform:translateY(0);
+    }
+
+    .panel{
+      border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(11,23,69,0.82), rgba(5,13,44,0.86));
+      border-radius:28px;
+      padding:22px 14px 20px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      text-align:center;
+    }
+
+    .eyebrow{
+      display:inline-block;
+      margin-bottom:14px;
+      padding:10px 16px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,0.09);
+      background:rgba(255,255,255,0.04);
+      color:var(--muted);
+      font-size:14px;
+      font-weight:700;
+      letter-spacing:0.02em;
+      text-transform:uppercase;
+    }
+
+    .eyebrow.good{
+      border-color:rgba(159,240,193,0.22);
+      background:rgba(159,240,193,0.08);
+      color:var(--good);
+      font-weight:800;
+    }
+
+    .title{
+      font-size:clamp(38px, 8.8vw, 66px);
+      line-height:0.95;
+      font-weight:800;
+      letter-spacing:-0.04em;
+      margin:0 0 14px;
+      text-wrap:balance;
+    }
+
+    .subtitle{
+      font-size:clamp(20px, 4.7vw, 28px);
+      line-height:1.45;
+      color:var(--text);
+      font-weight:650;
+      margin:0 0 8px;
+    }
+
+    .subcopy{
+      font-size:clamp(16px, 3.9vw, 20px);
+      line-height:1.5;
+      color:var(--muted);
+      margin:0 0 18px;
+    }
+
+    .ships-double{
+      position:relative;
+      width:100%;
+      min-height:200px;
+      margin:10px 0 16px;
+      border:1px solid var(--line);
+      border-radius:24px;
+      background:
+        radial-gradient(circle at 25% 30%, rgba(255,177,220,0.10), transparent 22%),
+        radial-gradient(circle at 78% 36%, rgba(89,160,255,0.10), transparent 24%),
+        linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:2px;
+      padding:14px 4px 4px;
+    }
+
+    .ship-inline{
+      width:49%;
+      max-width:300px;
+      object-fit:contain;
+      filter:drop-shadow(0 16px 20px rgba(0,0,0,0.34));
+      animation:floaty 3.8s ease-in-out infinite;
+      user-select:none;
+      pointer-events:none;
+    }
+    .ship-inline:nth-child(2){ animation-delay:.7s; transform:translateY(8px); }
+
+    .ship-zone{
+      position:relative;
+      width:100%;
+      min-height:215px;
+      margin:10px 0 16px;
+      border:1px solid var(--line);
+      border-radius:24px;
+      background:
+        radial-gradient(circle at 50% 28%, rgba(255,160,120,0.08), transparent 26%),
+        radial-gradient(circle at 50% 75%, rgba(70,132,255,0.10), transparent 28%),
+        linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      overflow:hidden;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      padding:10px;
+    }
+
+    .ship-zone.mira{
+      background:
+        radial-gradient(circle at 50% 36%, rgba(255,170,220,0.14), transparent 24%),
+        radial-gradient(circle at 50% 78%, rgba(255,205,235,0.08), transparent 28%),
+        linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    }
+
+    .ship-zone.mira::before,
+    .final-zone::before{
+      content:"";
+      position:absolute;
+      width:210px;
+      height:210px;
+      border-radius:50%;
+      background:radial-gradient(circle, rgba(255,175,225,0.18), transparent 70%);
+      filter:blur(10px);
+      opacity:0.95;
+      pointer-events:none;
+    }
+
+    .ship-single{
+      position:relative;
+      z-index:1;
+      width:min(95%, 360px);
+      max-height:270px;
+      object-fit:contain;
+      filter:drop-shadow(0 20px 24px rgba(0,0,0,0.34));
+      animation:floaty 3.8s ease-in-out infinite;
+      user-select:none;
+      pointer-events:none;
+    }
+
+    .sound-btn,
+    .primary-btn,
+    .secondary-btn,
+    .hint-btn,
+    .answer-btn,
+    .option-btn,
+    .fragment-btn,
+    .mini-btn{
+      appearance:none;
+      border:none;
+      cursor:pointer;
+      font:inherit;
+      font-weight:800;
+      border-radius:20px;
+      transition:transform .15s ease, box-shadow .15s ease, background .15s ease, opacity .15s ease;
+    }
+
+    .sound-btn:active,
+    .primary-btn:active,
+    .secondary-btn:active,
+    .hint-btn:active,
+    .answer-btn:active,
+    .option-btn:active,
+    .fragment-btn:active,
+    .mini-btn:active{ transform:scale(0.985); }
+
+    .sound-btn{
+      min-width:180px;
+      padding:14px 18px;
+      background:rgba(255,255,255,0.06);
+      color:var(--text);
+      border:1px solid var(--line);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+
+    .primary-btn{
+      width:100%;
+      max-width:none;
+      padding:17px 22px;
+      background:linear-gradient(180deg, var(--pink1), var(--pink2) 52%, var(--pink3));
+      color:var(--buttonText);
+      box-shadow:0 12px 30px rgba(237,141,199,0.24);
+      font-size:23px;
+      letter-spacing:-0.02em;
+    }
+
+    .secondary-btn{
+      background:rgba(255,255,255,0.06);
+      color:var(--text);
+      border:1px solid var(--line);
+      min-height:54px;
+      padding:14px 14px;
+    }
+
+    .hint-btn{
+      background:rgba(180,205,255,0.10);
+      color:var(--text);
+      border:1px solid rgba(180,205,255,0.18);
+      min-height:54px;
+      padding:14px 14px;
+    }
+
+    .controls{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      align-items:center;
+      justify-content:center;
+      margin-top:6px;
+    }
+
+    .rules,
+    .question-box,
+    .selection-box,
+    .info-box{
+      border:1px solid var(--line);
+      background:var(--panel2);
+      border-radius:22px;
+      padding:14px;
+      margin-bottom:16px;
+      text-align:left;
+    }
+
+    .box-title{
+      font-size:15px;
+      font-weight:800;
+      margin-bottom:8px;
+      color:var(--text);
+    }
+
+    .rules ul{
+      margin:0;
+      padding-left:18px;
+      color:var(--muted);
+      font-size:16px;
+      line-height:1.6;
+    }
+
+    .fragment-grid,
+    .answers-grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:12px;
+      margin-bottom:16px;
+    }
+
+    .fragment-btn,
+    .answer-btn,
+    .option-btn{
+      width:100%;
+      border:1px solid rgba(255,255,255,0.12);
+      background:rgba(255,255,255,0.04);
+      color:var(--text);
+      padding:16px 14px;
+      text-align:left;
+      min-height:86px;
+    }
+
+    .fragment-btn.selected,
+    .answer-btn.selected,
+    .option-btn.selected{
+      background:linear-gradient(180deg, rgba(255,215,236,1), rgba(244,183,222,1));
+      color:#251833;
+      border-color:rgba(255,255,255,0.55);
+      box-shadow:0 10px 24px rgba(244,167,216,0.20);
+    }
+
+    .fragment-btn.disabled{ opacity:0.45; }
+
+    .fragment-label,
+    .option-label{
+      font-size:14px;
+      font-weight:800;
+      letter-spacing:0.03em;
+      text-transform:uppercase;
+      margin-bottom:8px;
+      opacity:.85;
+    }
+
+    .fragment-seq,
+    .option-copy{
+      font-size:20px;
+      line-height:1.45;
+      font-weight:750;
+      letter-spacing:-0.02em;
+      word-break:break-word;
+    }
+
+    .selected-text{
+      min-height:54px;
+      border:1px dashed rgba(255,255,255,0.18);
+      border-radius:18px;
+      padding:12px 14px;
+      font-size:18px;
+      line-height:1.5;
+      color:var(--text);
+      display:flex;
+      align-items:center;
+      background:rgba(255,255,255,0.02);
+    }
+
+    .selected-text.placeholder{ color:rgba(255,255,255,0.45); }
+
+    .feedback{
+      min-height:30px;
+      margin-bottom:12px;
+      font-size:16px;
+      font-weight:700;
+      line-height:1.45;
+      text-align:center;
+      color:var(--muted);
+    }
+    .feedback.good{ color:var(--good); }
+    .feedback.bad{ color:var(--bad); }
+
+    .actions{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:10px;
+    }
+
+    .sequence-card{ margin-bottom:16px; }
+    .row-card{
+      border:1px solid rgba(255,255,255,0.10);
+      border-radius:20px;
+      background:rgba(255,255,255,0.03);
+      padding:14px 16px;
+      margin-bottom:10px;
+      text-align:left;
+    }
+    .row-label{
+      font-size:14px;
+      font-weight:800;
+      letter-spacing:0.03em;
+      text-transform:uppercase;
+      color:var(--muted);
+      margin-bottom:8px;
+    }
+    .row-seq{
+      font-size:clamp(22px, 5vw, 30px);
+      line-height:1.35;
+      font-weight:800;
+      letter-spacing:-0.02em;
+    }
+
+    .answers-grid.two{ grid-template-columns:1fr 1fr; }
+    .answer-btn{
+      min-height:78px;
+      font-size:24px;
+      text-align:center;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .final-zone{
+      position:relative;
+      width:100%;
+      min-height:230px;
+      margin:10px 0 18px;
+      border:1px solid var(--line);
+      border-radius:24px;
+      background:
+        radial-gradient(circle at 50% 52%, rgba(255,215,232,0.10), transparent 18%),
+        linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .final-ship{
+      position:absolute;
+      width:min(44vw, 260px);
+      max-width:260px;
+      object-fit:contain;
+      filter:drop-shadow(0 18px 22px rgba(0,0,0,0.34));
+      user-select:none;
+      pointer-events:none;
+    }
+
+    .final-ship.maiku{
+      left:2%;
+      transform:translateX(-18px) rotate(-2deg);
+      animation:maikuIn 1.6s ease forwards, maikuFloat 3.8s ease-in-out infinite 1.6s;
+    }
+
+    .final-ship.mira{
+      right:2%;
+      transform:translateX(18px) rotate(2deg);
+      animation:miraIn 1.6s ease forwards, miraFloat 3.8s ease-in-out infinite 1.6s;
+    }
+
+    .tiny{
+      color:rgba(255,255,255,0.52);
+      font-size:14px;
+      margin-top:12px;
+    }
+
+    .fade-line{
+      opacity:0;
+      transform:translateY(10px);
+    }
+
+    .screen.active .fade-line.show1{ animation:fadeRise .8s ease forwards .35s; }
+    .screen.active .fade-line.show2{ animation:fadeRise .8s ease forwards .9s; }
+    .screen.active .fade-line.show3{ animation:fadeRise .8s ease forwards 1.45s; }
+
+    .success-summary{
+      font-size:15px;
+      color:rgba(255,255,255,0.60);
+      margin-bottom:14px;
+    }
+
+    .code-box{
+      border:1px solid var(--line);
+      background:var(--panel2);
+      border-radius:22px;
+      padding:16px;
+      margin-bottom:16px;
+      text-align:center;
+    }
+
+    .code-row{
+      font-size:clamp(24px,5.5vw,34px);
+      font-weight:800;
+      letter-spacing:.06em;
+      margin:8px 0;
+    }
+
+    .input-wrap{
+      display:flex;
+      gap:10px;
+      justify-content:center;
+      align-items:center;
+      margin-bottom:16px;
+      flex-wrap:wrap;
+    }
+
+    input.code-input{
+      width:150px;
+      padding:14px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,0.12);
+      background:rgba(255,255,255,0.08);
+      color:var(--text);
+      font-size:22px;
+      text-align:center;
+      outline:none;
+    }
+
+    input.code-input::placeholder{ color:rgba(255,255,255,0.35); }
+
+    @keyframes floaty{
+      0%,100%{ transform:translateY(0); }
+      50%{ transform:translateY(-8px); }
+    }
+    @keyframes maikuIn{ to{ transform:translateX(0) rotate(-2deg); } }
+    @keyframes miraIn{ to{ transform:translateX(0) rotate(2deg); } }
+    @keyframes maikuFloat{
+      0%,100%{ transform:translateX(0) translateY(0) rotate(-2deg); }
+      50%{ transform:translateX(0) translateY(-8px) rotate(-2deg); }
+    }
+    @keyframes miraFloat{
+      0%,100%{ transform:translateX(0) translateY(4px) rotate(2deg); }
+      50%{ transform:translateX(0) translateY(-6px) rotate(2deg); }
+    }
+    @keyframes fadeRise{ to{ opacity:1; transform:translateY(0); } }
+
+    @media (min-width:700px){
+      .app{ padding:20px 16px 28px; }
+      .panel{ padding:26px 18px 24px; border-radius:32px; }
+      .ship-zone, .ships-double, .final-zone{ min-height:280px; border-radius:28px; }
+      .ship-single{ max-height:300px; }
+      .actions.three{ grid-template-columns:1fr 1fr 1fr; }
+      .fragment-grid.two{ grid-template-columns:1fr 1fr; }
+      .topline{ font-size:15px; gap:12px; }
+      .topchip{ min-height:58px; padding:12px 16px; }
+      .primary-btn{ max-width:360px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <div class="topline">
+      <div class="topchip">Recipient: <strong>&nbsp;Boss Maiku Bae</strong></div>
+      <div class="topchip" style="justify-content:flex-end;">Source: <strong>&nbsp;Bunny Mira Bae</strong></div>
+    </div>
+
+    <!-- Intro -->
+    <section id="intro" class="screen active">
+      <div class="panel">
+        <div class="eyebrow">Incoming Transmission</div>
+        <h1 class="title">Incoming<br>Transmission</h1>
+        <p class="subtitle">A signal has appeared beyond the outer lanes.</p>
+        <p class="subcopy">Solve the path. Find her.</p>
+        <div class="ships-double">
+          <img src="maiku_ship.png" alt="Boss Maiku Bae ship" class="ship-inline">
+          <img src="mira_ship.png" alt="Bunny Mira Bae ship" class="ship-inline">
+        </div>
+        <div class="controls">
+          <button class="sound-btn" id="soundBtn" type="button">Sound: ON</button>
+          <button class="primary-btn" data-next="l1start" type="button">Begin Mission</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Level 1 Start -->
+    <section id="l1start" class="screen">
+      <div class="panel">
+        <div class="eyebrow">Level 1</div>
+        <h1 class="title">False<br>Signals</h1>
+        <p class="subtitle">Focus. One of these signals is real.</p>
+        <div class="ship-zone">
+          <img src="maiku_ship.png" alt="Boss Maiku Bae ship" class="ship-single">
+        </div>
+        <button class="primary-btn" data-next="l1puzzle" type="button">Start Level</button>
+      </div>
+    </section>
+
+    <!-- Level 1 Puzzle -->
+    <section id="l1puzzle" class="screen">
+      <div class="panel">
+        <div class="eyebrow">Level 1</div>
+        <h1 class="title">False Signals</h1>
+        <p class="subtitle">Two fragments are real. Two are decoys.</p>
+        <p class="subcopy">Choose the first fragment, then the second. The final signal must follow jumps of +2, +3, +4, then +5, and end on a prime number.</p>
+
+        <div class="rules">
+          <div class="box-title">Rules</div>
+          <ul>
+            <li>Choose the <strong>first fragment</strong>, then the <strong>second</strong></li>
+            <li>The full signal must stay increasing</li>
+            <li>The jumps must be <strong>+2, +3, +4, +5</strong></li>
+            <li>The final number must be <strong>prime</strong></li>
+          </ul>
+        </div>
+
+        <div class="fragment-grid two">
+          <button class="fragment-btn" data-frag="A">
+            <div class="fragment-label">Fragment A</div>
+            <div class="fragment-seq">4 → 6 → 9</div>
+          </button>
+          <button class="fragment-btn" data-frag="B">
+            <div class="fragment-label">Fragment B</div>
+            <div class="fragment-seq">10 → 14 → 19</div>
+          </button>
+          <button class="fragment-btn" data-frag="C">
+            <div class="fragment-label">Fragment C</div>
+            <div class="fragment-seq">5 → 7 → 10</div>
+          </button>
+          <button class="fragment-btn" data-frag="D">
+            <div class="fragment-label">Fragment D</div>
+            <div class="fragment-seq">9 → 13 → 18</div>
+          </button>
+        </div>
+
+        <div class="selection-box">
+          <div class="box-title">Selected Signal</div>
+          <div class="subcopy" style="margin:0 0 10px;font-size:14px;">Pick exactly two fragments in order.</div>
+          <div id="l1selected" class="selected-text placeholder">No fragments selected yet.</div>
+        </div>
+
+        <div id="l1feedback" class="feedback">Select the first fragment, then the second.</div>
+
+        <div class="actions three">
+          <button class="secondary-btn" id="l1clear" type="button">Clear</button>
+          <button class="primary-btn" id="l1validate" type="button">Validate Signal</button>
+          <button class="hint-btn" id="l1hint" type="button">Hint</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Level 1 Success -->
+    <section id="l1success" class="screen">
+      <div class="panel">
+        <div class="eyebrow good">Signal Confirmed</div>
+        <h1 class="title">Path<br>Unlocked</h1>
+        <p class="subtitle">You found the right signal.</p>
+        <p class="subcopy">The path is opening.</p>
+        <div class="ship-zone mira">
+          <img src="mira_ship.png" alt="Bunny Mira Bae ship" class="ship-single">
+        </div>
+        <div class="success-summary">Transmission stabilized.</div>
+        <button class="primary-btn" data-next="l2start" type="button">Next Level</button>
+      </div>
+    </section>
+
+    <!-- Level 2 Start -->
+    <section id="l2start" class="screen">
+      <div class="panel">
+        <div class="eyebrow">Level 2</div>
+        <h1 class="title">Signal<br>Drift</h1>
+        <p class="subtitle">Stay sharp. The pattern is shifting.</p>
+        <div class="ship-zone">
+          <img src="maiku_ship.png" alt="Boss Maiku Bae ship" class="ship-single">
+        </div>
+        <button class="primary-btn" data-next="l2puzzle" type="button">Start Level</button>
+      </div>
+    </section>
+
+    <!-- Level 2 Puzzle -->
+    <section id="l2puzzle" class="screen">
+      <div class="panel">
+        <div class="eyebrow">Level 2</div>
+        <h1 class="title">Signal Drift</h1>
+        <p class="subtitle">All sequences follow a pattern. Find it.</p>
+        <p class="subcopy">Find the pattern across all rows. Then determine the missing value.</p>
+
+        <div class="rules">
+          <div class="box-title">Rules</div>
+          <ul>
+            <li>Compare how each row grows</li>
+            <li>Do not look at one row alone</li>
+            <li>The missing value must continue the full pattern</li>
+          </ul>
+        </div>
+
+        <div class="sequence-card">
+          <div class="row-card">
+            <div class="row-label">Row A</div>
+            <div class="row-seq">3 → 7 → 12</div>
+          </div>
+          <div class="row-card">
+            <div class="row-label">Row B</div>
+            <div class="row-seq">4 → 9 → 15</div>
+          </div>
+          <div class="row-card">
+            <div class="row-label">Row C</div>
+            <div class="row-seq">5 → 11 → 18</div>
+          </div>
+          <div class="row-card">
+            <div class="row-label">Row D</div>
+            <div class="row-seq">6 → 13 → ?</div>
+          </div>
+        </div>
+
+        <div class="question-box">
+          <div class="box-title">Question</div>
+          <div class="subcopy" style="margin:0;">What value completes Row D?</div>
+        </div>
+
+        <div class="answers-grid two" id="l2answers">
+          <button class="answer-btn" data-answer="20">20</button>
+          <button class="answer-btn" data-answer="21">21</button>
+          <button class="answer-btn" data-answer="22">22</button>
+          <button class="answer-btn" data-answer="23">23</button>
+        </div>
+
+        <div id="l2feedback" class="feedback">Select one answer, then validate it.</div>
+
+        <div class="actions three">
+          <button class="secondary-btn" id="l2clear" type="button">Clear</button>
+          <button class="primary-btn" id="l2validate" type="button">Validate Answer</button>
+          <button class="hint-btn" id="l2hint" type="button">Hint</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Level 2 Success -->
+    <section id="l2success" class="screen">
+      <div class="panel">
+        <div class="eyebrow good">Level 2 • Cleared</div>
+        <h1 class="title">Signal Drift<br>Stabilized</h1>
+        <p class="subtitle">You saw the pattern across all of them.</p>
+        <p class="subcopy">The route is still holding.</p>
+        <div class="ship-zone mira">
+          <img src="mira_ship.png" alt="Bunny Mira Bae ship" class="ship-single">
+        </div>
+        <div class="info-box">
+          <div class="box-title">Insight</div>
+          <div class="subcopy" style="margin:0;">+4,+5 → +5,+6 → +6,+7 → +7,+8</div>
+        </div>
+        <button class="primary-btn" data-next="l3puzzle" type="button">Next Level</button>
+      </div>
+    </section>
+
+    <!-- Level 3 Puzzle -->
+    <section id="l3puzzle" class="screen">
+      <div class="panel">
+        <div class="eyebrow">Level 3</div>
+        <h1 class="title">Orbit Constraint</h1>
+        <p class="subtitle">Assign one symbol to each node.</p>
+        <p class="subcopy">Each symbol is used exactly once. All rules must be true at the same time.</p>
+
+        <div class="rules">
+          <div class="box-title">Rules</div>
+          <ul>
+            <li>Each symbol has a different strength</li>
+            <li>A and B together form the strongest pair</li>
+            <li>D is stronger than B, but weaker than A</li>
+            <li>C is weaker than A</li>
+            <li>C cannot be the weakest symbol</li>
+          </ul>
+        </div>
+
+        <div class="info-box">
+          <div class="box-title">Symbols</div>
+          <div class="subcopy" style="margin:0 0 10px;">These are the four symbols used in the orbit grid.</div>
+          <div class="row-seq" style="text-align:center;">☀ &nbsp; ☄ &nbsp; ✦ &nbsp; ☾</div>
+        </div>
+
+        <div class="answers-grid" id="l3options">
+          <button class="option-btn" data-option="A">
+            <div class="option-label">Option A</div>
+            <div class="option-copy">A = ☀ &nbsp;&nbsp; B = ☾ &nbsp;&nbsp; C = ✦ &nbsp;&nbsp; D = ☄</div>
+          </button>
+          <button class="option-btn" data-option="B">
+            <div class="option-label">Option B</div>
+            <div class="option-copy">A = ☄ &nbsp;&nbsp; B = ☾ &nbsp;&nbsp; C = ☀ &nbsp;&nbsp; D = ✦</div>
+          </button>
+          <button class="option-btn" data-option="C">
+            <div class="option-label">Option C</div>
+            <div class="option-copy">A = ☀ &nbsp;&nbsp; B = ✦ &nbsp;&nbsp; C = ☾ &nbsp;&nbsp; D = ☄</div>
+          </button>
+          <button class="option-btn" data-option="D">
+            <div class="option-label">Option D</div>
+            <div class="option-copy">A = ✦ &nbsp;&nbsp; B = ☾ &nbsp;&nbsp; C = ☄ &nbsp;&nbsp; D = ☀</div>
+          </button>
+        </div>
+
+        <div id="l3feedback" class="feedback">Select one configuration, then validate it.</div>
+
+        <div class="actions three">
+          <button class="secondary-btn" id="l3clear" type="button">Clear</button>
+          <button class="primary-btn" id="l3validate" type="button">Validate Configuration</button>
+          <button class="hint-btn" id="l3hint" type="button">Hint</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Level 3 Success -->
+    <section id="l3success" class="screen">
+      <div class="panel">
+        <div class="eyebrow good">Orbit Stabilized</div>
+        <h1 class="title">Level 3<br>Cleared</h1>
+        <p class="subtitle">You found the only valid configuration.</p>
+        <p class="subcopy">The orbit lock has opened.</p>
+        <div class="ship-zone mira">
+          <img src="mira_ship.png" alt="Bunny Mira Bae ship" class="ship-single">
+        </div>
+        <div class="info-box">
+          <div class="box-title">Why it worked</div>
+          <div class="subcopy" style="margin:0;">Only one symbol assignment satisfies all the constraints at the same time.</div>
+        </div>
+        <button class="primary-btn" data-next="l4start" type="button">Next Level</button>
+      </div>
+    </section>
+
+    <!-- Level 4 Start -->
+    <section id="l4start" class="screen">
+      <div class="panel">
+        <div class="eyebrow">Level 4</div>
+        <h1 class="title">Final<br>Approach</h1>
+        <p class="subtitle">One last lock stands between signal and approach.</p>
+        <div class="ship-zone">
+          <img src="maiku_ship.png" alt="Boss Maiku Bae ship" class="ship-single">
+        </div>
+        <button class="primary-btn" data-next="l4route" type="button">Start Level</button>
+      </div>
+    </section>
+
+    <!-- Level 4 Route -->
+    <section id="l4route" class="screen">
+      <div class="panel">
+        <div class="eyebrow">Level 4 • Stage 1</div>
+        <h1 class="title">Star Route</h1>
+        <p class="subtitle">Choose the only valid five-star route.</p>
+        <p class="subcopy">One route satisfies every rule at the same time.</p>
+
+        <div class="rules">
+          <div class="box-title">Rules</div>
+          <ul>
+            <li>Start with <strong>B</strong></li>
+            <li>End with <strong>E</strong></li>
+            <li><strong>D</strong> must be 4th</li>
+            <li><strong>A</strong> must come before <strong>D</strong></li>
+            <li>Use only <strong>ONE</strong> of: <strong>C</strong> or <strong>F</strong></li>
+            <li>That symbol (<strong>C</strong> or <strong>F</strong>) cannot be 2nd</li>
+          </ul>
+        </div>
+
+        <div class="answers-grid" id="l4routes">
+          <button class="option-btn" data-route="A">
+            <div class="option-label">Route A</div>
+            <div class="option-copy">B → A → D → C → E</div>
+          </button>
+          <button class="option-btn" data-route="B">
+            <div class="option-label">Route B</div>
+            <div class="option-copy">B → C → D → A → E</div>
+          </button>
+          <button class="option-btn" data-route="C">
+            <div class="option-label">Route C</div>
+            <div class="option-copy">B → A → F → D → E</div>
+          </button>
+          <button class="option-btn" data-route="D">
+            <div class="option-label">Route D</div>
+            <div class="option-copy">B → F → A → D → E</div>
+          </button>
+        </div>
+
+        <div id="l4feedback" class="feedback">Select one route, then validate it.</div>
+
+        <div class="actions three">
+          <button class="secondary-btn" id="l4clear" type="button">Clear</button>
+          <button class="primary-btn" id="l4validate" type="button">Validate Route</button>
+          <button class="hint-btn" id="l4hint" type="button">Hint</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Level 4 Lock -->
+    <section id="l4lock" class="screen">
+      <div class="panel">
+        <div class="eyebrow">Level 4 • Stage 2</div>
+        <h1 class="title">Final Lock</h1>
+        <p class="subtitle">Route confirmed. Final lock detected.</p>
+        <p class="subcopy">Convert the route into numbers using letter order. Then reverse the sequence to unlock the approach.</p>
+
+        <div class="code-box">
+          <div class="box-title">Confirmed Route</div>
+          <div class="code-row">B → A → F → D</div>
+        </div>
+
+        <div class="input-wrap">
+          <input id="lockInput" class="code-input" inputmode="numeric" maxlength="4" placeholder="enter code">
+          <button class="primary-btn" id="lockValidate" type="button" style="max-width:180px;">Unlock</button>
+        </div>
+
+        <div id="lockFeedback" class="feedback">Enter the final code.</div>
+
+        <div class="actions three">
+          <button class="secondary-btn" id="lockClear" type="button">Clear</button>
+          <button class="hint-btn" id="lockHint" type="button">Hint</button>
+          <button class="secondary-btn" id="lockMap" type="button">Show Mapping</button>
+        </div>
+
+        <div id="lockMapBox" class="info-box" style="display:none;">
+          <div class="box-title">Letter Order</div>
+          <div class="subcopy" style="margin:0;">A = 1 &nbsp; B = 2 &nbsp; C = 3 &nbsp; D = 4 &nbsp; E = 5 &nbsp; F = 6</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Final Scene -->
+    <section id="finalscene" class="screen">
+      <div class="panel">
+        <div class="eyebrow">Final Approach Complete</div>
+        <h1 class="title">Final<br>Approach Complete</h1>
+        <p class="subtitle fade-line show1">thanks for staying on the path…</p>
+        <p class="subtitle fade-line show2" style="margin-bottom:18px;">you found your way to me</p>
+
+        <div class="final-zone">
+          <img src="maiku_ship.png" alt="Boss Maiku Bae ship" class="final-ship maiku">
+          <img src="mira_ship.png" alt="Bunny Mira Bae ship" class="final-ship mira">
+        </div>
+
+        <div class="subcopy fade-line show3" style="font-style:italic;">onto the next journey</div>
+
+        <button class="primary-btn fade-line show3" id="endTransmission" type="button">End Transmission</button>
+        <div id="endLine" class="tiny" style="display:none;">…i don’t mind either</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const screens = [...document.querySelectorAll('.screen')];
+    let soundOn = true;
+
+    function ensureCtx(){
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if(!AC) return null;
+      if(!window._ctx) window._ctx = new AC();
+      if(window._ctx.state === 'suspended') window._ctx.resume();
+      return window._ctx;
+    }
+
+    function playTone(freq=620, duration=0.09, type='triangle', volume=0.03){
+      if(!soundOn) return;
+      const ctx = ensureCtx();
+      if(!ctx) return;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.value = freq;
+      gain.gain.value = volume;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      const now = ctx.currentTime;
+      gain.gain.setValueAtTime(volume, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+      osc.start(now);
+      osc.stop(now + duration);
+    }
+
+    function soundTap(){ playTone(620, .08, 'triangle', .03); }
+    function soundWrong(){ playTone(260, .12, 'sawtooth', .025); }
+    function soundSuccess(){ playTone(720, .10, 'triangle', .04); setTimeout(()=>playTone(920, .12, 'triangle', .03), 90); }
+    function soundWhoosh(){ playTone(680, .10, 'triangle', .04); setTimeout(()=>playTone(860, .12, 'triangle', .03), 90); }
+
+    window.addEventListener('pointerdown', () => ensureCtx(), { once:true });
+
+    function showScreen(id){
+      screens.forEach(s=>s.classList.remove('active'));
+      const screen = document.getElementById(id);
+      screen.classList.add('active');
+      window.scrollTo({top:0, behavior:'instant'});
+    }
+
+    document.getElementById('soundBtn').addEventListener('click', () => {
+      soundOn = !soundOn;
+      document.getElementById('soundBtn').textContent = `Sound: ${soundOn ? 'ON' : 'OFF'}`;
+      playTone(soundOn ? 640 : 320, .07, 'triangle', .035);
+    });
+
+    document.querySelectorAll('[data-next]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        soundWhoosh();
+        showScreen(btn.dataset.next);
+      });
+    });
+
+    // Level 1
+    const fragData = {
+      A:[4,6,9],
+      B:[10,14,19],
+      C:[5,7,10],
+      D:[9,13,18]
+    };
+    const l1Correct = ['C','B'];
+    let l1Selected = [];
+    let l1Wrong = 0;
+    let l1HintStep = 0;
+    const l1SelectedBox = document.getElementById('l1selected');
+    const l1Feedback = document.getElementById('l1feedback');
+    const l1FragBtns = [...document.querySelectorAll('.fragment-btn')];
+
+    function setFeedback(el, msg, type=''){
+      el.textContent = msg;
+      el.className = 'feedback' + (type ? ' '+type : '');
+    }
+
+    function renderL1(){
+      l1FragBtns.forEach(btn=>{
+        const key = btn.dataset.frag;
+        btn.classList.toggle('selected', l1Selected.includes(key));
+        btn.classList.toggle('disabled', l1Selected.length >= 2 && !l1Selected.includes(key));
+      });
+      if(l1Selected.length === 0){
+        l1SelectedBox.textContent = 'No fragments selected yet.';
+        l1SelectedBox.classList.add('placeholder');
+      } else {
+        l1SelectedBox.textContent = l1Selected.map(k => `Fragment ${k}: ${fragData[k].join(' → ')}`).join('   |   ');
+        l1SelectedBox.classList.remove('placeholder');
+      }
+    }
+
+    function resetL1(){
+      l1Selected = [];
+      renderL1();
+      setFeedback(l1Feedback, 'Select the first fragment, then the second.');
+    }
+
+    l1FragBtns.forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const k = btn.dataset.frag;
+        if(!l1Selected.includes(k) && l1Selected.length >= 2){
+          soundWrong();
+          setFeedback(l1Feedback, 'Only two fragments can be selected. Clear first if you want to change them.', 'bad');
+          return;
+        }
+        if(l1Selected.includes(k)){
+          l1Selected = l1Selected.filter(x => x !== k);
+          playTone(420,.07,'triangle',.025);
+        } else {
+          l1Selected.push(k);
+          soundTap();
+        }
+        renderL1();
+        if(l1Selected.length === 0) setFeedback(l1Feedback, 'Select the first fragment, then the second.');
+        else if(l1Selected.length === 1) setFeedback(l1Feedback, 'Now choose the second fragment.');
+        else setFeedback(l1Feedback, 'Two fragments selected. Press Validate Signal.');
+      });
+    });
+
+    document.getElementById('l1clear').addEventListener('click', ()=>{ playTone(360,.08,'triangle',.025); resetL1(); });
+
+    document.getElementById('l1validate').addEventListener('click', ()=>{
+      if(l1Selected.length !== 2){
+        soundWrong();
+        setFeedback(l1Feedback, 'Choose exactly two fragments before validating.', 'bad');
+        return;
+      }
+      const first = fragData[l1Selected[0]];
+      const second = fragData[l1Selected[1]];
+      const combined = [...first, ...second.slice(1)]; // fixed overlap bug
+      for(let i=1;i<combined.length;i++){
+        if(combined[i] <= combined[i-1]){
+          l1Wrong++;
+          soundWrong();
+          setFeedback(l1Feedback, 'Signal rejected. The numbers do not keep increasing.', 'bad');
+          return;
+        }
+      }
+      const req = [2,3,4,5];
+      const gaps = [];
+      for(let i=1;i<combined.length;i++) gaps.push(combined[i]-combined[i-1]);
+      if(gaps.length !== req.length || gaps.some((g,i)=>g!==req[i])){
+        l1Wrong++;
+        soundWrong();
+        setFeedback(l1Feedback, 'Signal rejected. The jumps are not +2, +3, +4, +5.', 'bad');
+        return;
+      }
+      const finalValue = combined[combined.length-1];
+      const isPrime = n => {
+        if(n < 2) return false;
+        for(let i=2;i*i<=n;i++) if(n%i===0) return false;
+        return true;
+      };
+      if(!isPrime(finalValue)){
+        l1Wrong++;
+        soundWrong();
+        setFeedback(l1Feedback, 'Signal rejected. The final number is not prime.', 'bad');
+        return;
+      }
+      if(l1Selected[0] !== l1Correct[0] || l1Selected[1] !== l1Correct[1]){
+        l1Wrong++;
+        soundWrong();
+        setFeedback(l1Feedback, 'Signal rejected. The fragment order is incorrect.', 'bad');
+        return;
+      }
+      soundSuccess();
+      showScreen('l1success');
+    });
+
+    document.getElementById('l1hint').addEventListener('click', ()=>{
+      soundTap();
+      const hints = [
+        'Hint: First check which full signal can end on a prime number.',
+        'Hint: The correct jumps must be exactly +2, +3, +4, then +5.',
+        'Hint: The first fragment starts with 5.'
+      ];
+      const auto = l1Wrong >= 4 ? 2 : l1Wrong >= 2 ? 1 : 0;
+      l1HintStep = Math.max(l1HintStep, auto);
+      setFeedback(l1Feedback, hints[Math.min(l1HintStep, hints.length-1)]);
+      if(l1HintStep < hints.length-1) l1HintStep++;
+    });
+
+    renderL1();
+
+    // Level 2
+    let l2Selected = null;
+    let l2Wrong = 0;
+    let l2HintStep = 0;
+    const l2Feedback = document.getElementById('l2feedback');
+    const l2Btns = [...document.querySelectorAll('#l2answers .answer-btn')];
+    function renderL2(){
+      l2Btns.forEach(btn=>btn.classList.toggle('selected', btn.dataset.answer === l2Selected));
+    }
+    l2Btns.forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        if(l2Selected === btn.dataset.answer){
+          l2Selected = null;
+          playTone(420,.07,'triangle',.025);
+          setFeedback(l2Feedback, 'Selection cleared.');
+        } else {
+          l2Selected = btn.dataset.answer;
+          soundTap();
+          setFeedback(l2Feedback, `Selected ${l2Selected}. Press Validate Answer when ready.`);
+        }
+        renderL2();
+      });
+    });
+    document.getElementById('l2clear').addEventListener('click', ()=>{
+      playTone(360,.08,'triangle',.025);
+      l2Selected = null;
+      renderL2();
+      setFeedback(l2Feedback, 'Select one answer, then validate it.');
+    });
+    document.getElementById('l2validate').addEventListener('click', ()=>{
+      if(!l2Selected){
+        soundWrong();
+        setFeedback(l2Feedback, 'Choose one answer before validating.', 'bad');
+        return;
+      }
+      if(l2Selected === '21'){
+        soundSuccess();
+        showScreen('l2success');
+      } else {
+        l2Wrong++;
+        soundWrong();
+        setFeedback(l2Feedback, 'Not quite. The missing value does not continue the full row pattern.', 'bad');
+      }
+    });
+    document.getElementById('l2hint').addEventListener('click', ()=>{
+      soundTap();
+      const hints = [
+        'Hint: Compare the jumps inside each row, not just the raw values.',
+        'Hint: Row A grows by +4, then +5. Row B grows by +5, then +6. Continue that pattern.',
+        'Hint: Row D must grow by +7, then +8.'
+      ];
+      const auto = l2Wrong >= 4 ? 2 : l2Wrong >= 2 ? 1 : 0;
+      l2HintStep = Math.max(l2HintStep, auto);
+      setFeedback(l2Feedback, hints[Math.min(l2HintStep, hints.length-1)]);
+      if(l2HintStep < hints.length-1) l2HintStep++;
+    });
+
+    // Level 3
+    let l3Selected = null;
+    let l3Wrong = 0;
+    let l3HintStep = 0;
+    const l3Feedback = document.getElementById('l3feedback');
+    const l3Btns = [...document.querySelectorAll('#l3options .option-btn')];
+    function renderL3(){ l3Btns.forEach(btn=>btn.classList.toggle('selected', btn.dataset.option === l3Selected)); }
+    l3Btns.forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        if(l3Selected === btn.dataset.option){
+          l3Selected = null;
+          playTone(420,.07,'triangle',.025);
+          setFeedback(l3Feedback, 'Selection cleared.');
+        } else {
+          l3Selected = btn.dataset.option;
+          soundTap();
+          setFeedback(l3Feedback, `Option ${l3Selected} selected. Press Validate Configuration when ready.`);
+        }
+        renderL3();
+      });
+    });
+    document.getElementById('l3clear').addEventListener('click', ()=>{
+      playTone(360,.08,'triangle',.025);
+      l3Selected = null; renderL3();
+      setFeedback(l3Feedback, 'Select one configuration, then validate it.');
+    });
+    document.getElementById('l3validate').addEventListener('click', ()=>{
+      if(!l3Selected){
+        soundWrong();
+        setFeedback(l3Feedback, 'Choose one configuration before validating.', 'bad');
+        return;
+      }
+      if(l3Selected === 'A'){
+        soundSuccess();
+        showScreen('l3success');
+      } else {
+        l3Wrong++;
+        soundWrong();
+        setFeedback(l3Feedback, 'Not quite. At least one rule is broken.', 'bad');
+      }
+    });
+    document.getElementById('l3hint').addEventListener('click', ()=>{
+      soundTap();
+      const hints = [
+        'Hint: Since C cannot be the weakest symbol, any option placing C = ☾ is invalid.',
+        'Hint: D must be stronger than B, but still weaker than A.',
+        'Hint: A must be ☀ for the full set of rules to work.'
+      ];
+      const auto = l3Wrong >= 4 ? 2 : l3Wrong >= 2 ? 1 : 0;
+      l3HintStep = Math.max(l3HintStep, auto);
+      setFeedback(l3Feedback, hints[Math.min(l3HintStep, hints.length-1)]);
+      if(l3HintStep < hints.length-1) l3HintStep++;
+    });
+
+    // Level 4 route
+    let l4Selected = null;
+    let l4Wrong = 0;
+    let l4HintStep = 0;
+    const l4Feedback = document.getElementById('l4feedback');
+    const l4Btns = [...document.querySelectorAll('#l4routes .option-btn')];
+    function renderL4(){ l4Btns.forEach(btn=>btn.classList.toggle('selected', btn.dataset.route === l4Selected)); }
+    l4Btns.forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        if(l4Selected === btn.dataset.route){
+          l4Selected = null;
+          playTone(420,.07,'triangle',.025);
+          setFeedback(l4Feedback, 'Selection cleared.');
+        } else {
+          l4Selected = btn.dataset.route;
+          soundTap();
+          setFeedback(l4Feedback, `Route ${l4Selected} selected. Press Validate Route when ready.`);
+        }
+        renderL4();
+      });
+    });
+    document.getElementById('l4clear').addEventListener('click', ()=>{
+      playTone(360,.08,'triangle',.025);
+      l4Selected = null; renderL4();
+      setFeedback(l4Feedback, 'Select one route, then validate it.');
+    });
+    document.getElementById('l4validate').addEventListener('click', ()=>{
+      if(!l4Selected){
+        soundWrong();
+        setFeedback(l4Feedback, 'Choose one route before validating.', 'bad');
+        return;
+      }
+      if(l4Selected === 'C'){
+        soundSuccess();
+        showScreen('l4lock');
+      } else {
+        l4Wrong++;
+        soundWrong();
+        setFeedback(l4Feedback, 'Route rejected. At least one rule is broken.', 'bad');
+      }
+    });
+    document.getElementById('l4hint').addEventListener('click', ()=>{
+      soundTap();
+      const hints = [
+        'Hint: D must be 4th, so eliminate anything where D appears too early.',
+        'Hint: The special symbol (C or F) cannot be 2nd.',
+        'Hint: The valid route uses F, not C.'
+      ];
+      const auto = l4Wrong >= 4 ? 2 : l4Wrong >= 2 ? 1 : 0;
+      l4HintStep = Math.max(l4HintStep, auto);
+      setFeedback(l4Feedback, hints[Math.min(l4HintStep, hints.length-1)]);
+      if(l4HintStep < hints.length-1) l4HintStep++;
+    });
+
+    // Lock
+    let lockWrong = 0;
+    let lockHintStep = 0;
+    const lockFeedback = document.getElementById('lockFeedback');
+    const lockInput = document.getElementById('lockInput');
+    document.getElementById('lockClear').addEventListener('click', ()=>{
+      playTone(360,.08,'triangle',.025);
+      lockInput.value = '';
+      setFeedback(lockFeedback, 'Enter the final code.');
+    });
+    document.getElementById('lockMap').addEventListener('click', ()=>{
+      soundTap();
+      const box = document.getElementById('lockMapBox');
+      box.style.display = box.style.display === 'none' ? 'block' : 'none';
+    });
+    document.getElementById('lockHint').addEventListener('click', ()=>{
+      soundTap();
+      const hints = [
+        'Hint: Convert B → A → F → D using letter order first.',
+        'Hint: The conversion gives 2164 before the final transformation.',
+        'Hint: Reverse the sequence.'
+      ];
+      const auto = lockWrong >= 4 ? 2 : lockWrong >= 2 ? 1 : 0;
+      lockHintStep = Math.max(lockHintStep, auto);
+      setFeedback(lockFeedback, hints[Math.min(lockHintStep, hints.length-1)]);
+      if(lockHintStep < hints.length-1) lockHintStep++;
+    });
+    document.getElementById('lockValidate').addEventListener('click', ()=>{
+      const code = lockInput.value.trim();
+      if(!code){
+        soundWrong();
+        setFeedback(lockFeedback, 'Enter the code before unlocking.', 'bad');
+        return;
+      }
+      if(code === '4612'){
+        soundSuccess();
+        showScreen('finalscene');
+        setTimeout(()=>{ playTone(700,.10,'triangle',.03); setTimeout(()=>playTone(920,.14,'triangle',.025),130); }, 1200);
+      } else {
+        lockWrong++;
+        soundWrong();
+        setFeedback(lockFeedback, 'Lock rejected. The code is incorrect.', 'bad');
+      }
+    });
+    lockInput.addEventListener('input', ()=>{
+      lockInput.value = lockInput.value.replace(/\D/g,'').slice(0,4);
+    });
+
+    // End transmission
+    document.getElementById('endTransmission').addEventListener('click', ()=>{
+      soundSuccess();
+      document.getElementById('endLine').style.display = 'block';
+    });
+  </script>
+</body>
+</html>
